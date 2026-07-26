@@ -30,6 +30,34 @@ from .views import (
     OutstandingPurchasesReportView,
     SearchPurchaseReportView,
 )
+from .views import (
+    CustomerSummaryReportView,
+    CustomerPurchaseHistoryView,
+    TopCustomersReportView,
+    OutstandingCustomerCreditView,
+    SearchCustomerReportView,
+    SupplierSummaryReportView,
+    SupplierPurchaseHistoryView,
+    TopSuppliersReportView,
+    OutstandingSuppliersReportView,
+    SearchSupplierReportView,
+)
+from .views import (
+    RevenueReportView,
+    ProfitLossReportView,
+    CashFlowReportView,
+    PaymentMethodReportView,
+    TaxSummaryReportView,
+    ReceivablesReportView,
+    PayablesReportView,
+    FinancialDashboardView,
+)
+from .views import SalesExcelView
+from .views import (
+    SalesPDFExportView,
+    SalesExcelExportView,
+    SalesCSVExportView,
+)
 
 urlpatterns = [
 
@@ -153,5 +181,64 @@ path(
     "purchases/search/",
     SearchPurchaseReportView.as_view(),
     name="search-purchase-report",
+),
+# ==========================
+# Customer Reports
+# ==========================
+
+path("customers/summary/", CustomerSummaryReportView.as_view()),
+path("customers/history/", CustomerPurchaseHistoryView.as_view()),
+path("customers/top/", TopCustomersReportView.as_view()),
+path("customers/credit/", OutstandingCustomerCreditView.as_view()),
+path("customers/search/", SearchCustomerReportView.as_view()),
+
+# ==========================
+# Supplier Reports
+# ==========================
+
+path("suppliers/summary/", SupplierSummaryReportView.as_view()),
+path("suppliers/history/", SupplierPurchaseHistoryView.as_view()),
+path("suppliers/top/", TopSuppliersReportView.as_view()),
+path("suppliers/outstanding/", OutstandingSuppliersReportView.as_view()),
+path("suppliers/search/", SearchSupplierReportView.as_view()),
+
+# ==========================
+# Financial Reports
+# ==========================
+
+path("financial/revenue/", RevenueReportView.as_view()),
+path("financial/profit-loss/", ProfitLossReportView.as_view()),
+path("financial/cash-flow/", CashFlowReportView.as_view()),
+path("financial/payment-methods/", PaymentMethodReportView.as_view()),
+path("financial/tax-summary/", TaxSummaryReportView.as_view()),
+path("financial/receivables/", ReceivablesReportView.as_view()),
+path("financial/payables/", PayablesReportView.as_view()),
+path("financial/dashboard/", FinancialDashboardView.as_view()),
+
+path(
+    "exports/sales/excel/",
+    SalesExcelView.as_view(),
+    name="sales-excel",
+),
+# ==========================
+# Export Reports
+# ==========================
+
+path(
+    "exports/sales/pdf/",
+    SalesPDFExportView.as_view(),
+    name="sales-export-pdf",
+),
+
+path(
+    "exports/sales/excel/",
+    SalesExcelExportView.as_view(),
+    name="sales-export-excel",
+),
+
+path(
+    "exports/sales/csv/",
+    SalesCSVExportView.as_view(),
+    name="sales-export-csv",
 ),
 ]

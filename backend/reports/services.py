@@ -28,6 +28,23 @@ from django.db.models import (
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from purchases.models import Purchase, PurchaseItem
 
+from customers.models import Customer
+from sales.models import Sale
+
+from django.db.models import (
+    Sum,
+    Count,
+    Avg,
+    F,
+    Q,
+)
+from suppliers.models import Supplier
+from purchases.models import Purchase
+from django.db.models import Sum, Count, Avg, F, Q, DecimalField
+from sales.models import Sale
+from purchases.models import Purchase
+from payments.models import Payment
+
 
 class SalesReportService:
 
@@ -781,14 +798,403 @@ class PurchaseReportService:
 
         )
 
-    # @staticmethod
-    # def customer_report():
-    #     pass
+class CustomerReportService:
 
-    # @staticmethod
-    # def supplier_report():
-    #     pass
+    @staticmethod
+    def purchase_history(
+        customer=None,
+        start_date=None,
+        end_date=None,
+    ):
 
-    # @staticmethod
-    # def financial_report():
-    #     pass
+        queryset = Sale.objects.select_related(
+            "customer"
+        )
+
+        if customer:
+            queryset = queryset.filter(customer_id=customer)
+
+        if start_date:
+            queryset = queryset.filter(
+                sale_date__date__gte=start_date
+            )
+
+        if end_date:
+            queryset = queryset.filter(
+                sale_date__date__lte=end_date
+            )
+
+        return queryset.order_by("-sale_date")
+
+    @staticmethod
+    def customer_summary():
+
+        return Customer.objects.annotate(
+
+            total_orders=Count("sale"),
+
+            total_spent=Sum("sale__total_amount"),
+
+            average_order=Avg("sale__total_amount"),
+
+        ).order_by("-total_spent")
+
+    @staticmethod
+    def top_customers(limit=10):
+
+        return Customer.objects.annotate(
+
+            total_spent=Sum("sale__total_amount"),
+
+            total_orders=Count("sale"),
+
+        ).order_by("-total_spent")[:limit]
+
+    @staticmethod
+    def outstanding_credit():
+
+        return Customer.objects.filter(
+
+            balance__gt=0
+
+        ).order_by("-balance")
+
+    @staticmethod
+    def search(query):
+
+        return Customer.objects.filter(
+
+            Q(first_name__icontains=query)
+
+            | Q(last_name__icontains=query)
+
+            | Q(phone_number__icontains=query)
+
+            | Q(email__icontains=query)
+
+        )
+
+class SupplierReportService:
+
+    @staticmethod
+    def supplier_summary():
+
+        return Supplier.objects.annotate(
+
+            total_orders=Count("purchase"),
+
+            total_purchase=Sum("purchase__total"),
+
+            average_purchase=Avg("purchase__total"),
+
+        ).order_by("-total_purchase")
+
+    @staticmethod
+    def supplier_purchase_history(
+
+        supplier=None,
+
+        start_date=None,
+
+        end_date=None,
+
+    ):
+
+        queryset = Purchase.objects.select_related(
+            "supplier"
+        )
+
+        if supplier:
+            queryset = queryset.filter(
+                supplier_id=supplier
+            )
+
+        if start_date:
+            queryset = queryset.filter(
+                purchase_date__gte=start_date
+            )
+
+        if end_date:
+            queryset = queryset.filter(
+                purchase_date__lte=end_date
+            )
+
+        return queryset.order_by("-purchase_date")
+
+    @staticmethod
+    def top_suppliers(limit=10):
+
+        return Supplier.objects.annotate(
+
+            total_purchase=Sum("purchase__total"),
+
+            total_orders=Count("purchase"),
+
+        ).order_by("-total_purchase")[:limit]
+
+    @staticmethod
+    def outstanding_suppliers():
+
+        return Purchase.objects.filter(
+
+            balance__gt=0
+
+        ).select_related("supplier")
+
+    @staticmethod
+    def search(query):
+
+        return Supplier.objects.filter(
+
+            Q(supplier_name__icontains=query)
+
+            | Q(company_name__icontains=query)
+
+            | Q(phone_number__icontains=query)
+
+            | Q(email__icontains=query)
+
+        )
+class FinancialReportService:
+
+    @staticmethod
+    def _sales_queryset(start_date=None, end_date=None):
+
+        queryset = Sale.objects.all()
+
+        if start_date:
+            queryset = queryset.filter(
+                sale_date__date__gte=start_date
+            )
+
+        if end_date:
+            queryset = queryset.filter(
+                sale_date__date__lte=end_date
+            )
+
+        return queryset
+
+    @staticmethod
+    def _purchase_queryset(start_date=None, end_date=None):
+
+        queryset = Purchase.objects.all()
+
+        if start_date:
+            queryset = queryset.filter(
+                purchase_date__gte=start_date
+            )
+
+        if end_date:
+            queryset = queryset.filter(
+                purchase_date__lte=end_date
+            )
+
+        return queryset
+    @staticmethod
+    def revenue(
+        start_date=None,
+        end_date=None,
+    ):
+
+        queryset = FinancialReportService._sales_queryset(
+            start_date,
+            end_date,
+        )
+
+        return queryset.aggregate(
+
+            total_sales=Sum("total_amount"),
+
+            total_profit=Sum("profit"),
+
+            total_orders=Count("id"),
+
+            average_sale=Avg("total_amount"),
+
+        )
+    @staticmethod
+    def profit_loss(
+        start_date=None,
+        end_date=None,
+    ):
+
+        sales = FinancialReportService._sales_queryset(
+            start_date,
+            end_date,
+        )
+
+        purchases = FinancialReportService._purchase_queryset(
+            start_date,
+            end_date,
+        )
+
+        revenue = sales.aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+
+        purchase_cost = purchases.aggregate(
+            total=Sum("total")
+        )["total"] or 0
+
+        gross_profit = revenue - purchase_cost
+
+        return {
+
+            "revenue": revenue,
+
+            "purchase_cost": purchase_cost,
+
+            "gross_profit": gross_profit,
+
+        }
+    @staticmethod
+    def cash_flow(
+        start_date=None,
+        end_date=None,
+    ):
+
+        sales = FinancialReportService._sales_queryset(
+            start_date,
+            end_date,
+        )
+
+        purchases = FinancialReportService._purchase_queryset(
+            start_date,
+            end_date,
+        )
+
+        cash_in = sales.aggregate(
+            total=Sum("paid_amount")
+        )["total"] or 0
+
+        cash_out = purchases.aggregate(
+            total=Sum("paid_amount")
+        )["total"] or 0
+
+        return {
+
+            "cash_in": cash_in,
+
+            "cash_out": cash_out,
+
+            "net_cash_flow": cash_in - cash_out,
+
+        }
+    @staticmethod
+    def payment_methods(
+        start_date=None,
+        end_date=None,
+    ):
+
+        queryset = FinancialReportService._sales_queryset(
+            start_date,
+            end_date,
+        )
+
+        return (
+
+            queryset
+
+            .values("payment_method")
+
+            .annotate(
+
+                total_sales=Sum("total_amount"),
+
+                transactions=Count("id"),
+
+            )
+
+            .order_by("-total_sales")
+
+        )
+    @staticmethod
+    def tax_summary(
+        start_date=None,
+        end_date=None,
+    ):
+
+        queryset = FinancialReportService._sales_queryset(
+            start_date,
+            end_date,
+        )
+
+        return queryset.aggregate(
+
+            taxable_sales=Sum("subtotal"),
+
+            total_tax=Sum("tax_amount"),
+
+            total_discount=Sum("discount"),
+
+        )
+    @staticmethod
+    def receivables():
+
+        return Sale.objects.filter(
+
+            balance__gt=0
+
+        ).values(
+
+            "invoice_number",
+
+            "customer__first_name",
+
+            "balance",
+
+            "sale_date",
+
+        )
+    @staticmethod
+    def payables():
+
+        return Purchase.objects.filter(
+
+            balance__gt=0
+
+        ).values(
+
+            "purchase_number",
+
+            "supplier__supplier_name",
+
+            "balance",
+
+            "purchase_date",
+
+        )
+    @staticmethod
+    def dashboard():
+
+        revenue = Sale.objects.aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+
+        purchases = Purchase.objects.aggregate(
+            total=Sum("total")
+        )["total"] or 0
+
+        profit = Sale.objects.aggregate(
+            total=Sum("profit")
+        )["total"] or 0
+
+        customers = Sale.objects.values(
+            "customer"
+        ).distinct().count()
+
+        return {
+
+            "revenue": revenue,
+
+            "purchase_cost": purchases,
+
+            "profit": profit,
+
+            "customers": customers,
+
+            "sales": Sale.objects.count(),
+
+            "purchases": Purchase.objects.count(),
+
+        }

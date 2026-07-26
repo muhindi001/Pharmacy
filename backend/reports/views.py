@@ -6,7 +6,16 @@ from .services import InventoryReportService
 from .services import SalesReportService
 from rest_framework.permissions import IsAuthenticated
 from .services import PurchaseReportService
-
+from .services import (
+    CustomerReportService,
+    SupplierReportService,
+)
+from .services import FinancialReportService
+from django.http import HttpResponse
+from .pdf import PDFReportGenerator
+from .excel import ExcelReportGenerator
+from .exports import ReportExportService
+from .services import SalesReportService
 
 class BaseReportAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -391,3 +400,509 @@ class SearchPurchaseReportView(APIView):
             })
 
         return Response(data)
+
+class CustomerSummaryReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        data = CustomerReportService.customer_summary()
+
+        return Response(data)
+
+
+class CustomerPurchaseHistoryView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        data = CustomerReportService.purchase_history(
+
+            customer=request.query_params.get("customer"),
+
+            start_date=request.query_params.get("start_date"),
+
+            end_date=request.query_params.get("end_date"),
+
+        )
+
+        return Response(data)
+
+
+class TopCustomersReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        limit = int(request.query_params.get("limit", 10))
+
+        data = CustomerReportService.top_customers(limit)
+
+        return Response(data)
+
+
+class OutstandingCustomerCreditView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        data = CustomerReportService.outstanding_credit()
+
+        return Response(data)
+
+
+class SearchCustomerReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        data = CustomerReportService.search(
+
+            request.query_params.get("search", "")
+
+        )
+
+        return Response(data)
+
+class SupplierSummaryReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            SupplierReportService.supplier_summary()
+
+        )
+
+
+class SupplierPurchaseHistoryView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            SupplierReportService.supplier_purchase_history(
+
+                supplier=request.query_params.get("supplier"),
+
+                start_date=request.query_params.get("start_date"),
+
+                end_date=request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class TopSuppliersReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        limit = int(request.query_params.get("limit", 10))
+
+        return Response(
+
+            SupplierReportService.top_suppliers(limit)
+
+        )
+
+
+class OutstandingSuppliersReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            SupplierReportService.outstanding_suppliers()
+
+        )
+
+
+class SearchSupplierReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            SupplierReportService.search(
+
+                request.query_params.get("search", "")
+
+            )
+
+        )
+
+class RevenueReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.revenue(
+
+                request.query_params.get("start_date"),
+
+                request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class ProfitLossReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.profit_loss(
+
+                request.query_params.get("start_date"),
+
+                request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class CashFlowReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.cash_flow(
+
+                request.query_params.get("start_date"),
+
+                request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class PaymentMethodReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.payment_methods(
+
+                request.query_params.get("start_date"),
+
+                request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class TaxSummaryReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.tax_summary(
+
+                request.query_params.get("start_date"),
+
+                request.query_params.get("end_date"),
+
+            )
+
+        )
+
+
+class ReceivablesReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.receivables()
+
+        )
+
+
+class PayablesReportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.payables()
+
+        )
+
+
+class FinancialDashboardView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        return Response(
+
+            FinancialReportService.dashboard()
+
+        )
+
+class SalesPDFView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        report = SalesReportService.top_selling_medicines()
+
+        headers = [
+
+            "Medicine",
+
+            "Quantity",
+
+            "Revenue",
+
+            "Profit",
+
+        ]
+
+        rows = []
+
+        for item in report:
+
+            rows.append([
+
+                item["medicine__medicine_name"],
+
+                item["quantity"],
+
+                item["revenue"],
+
+                item["profit"],
+
+            ])
+
+        pdf = PDFReportGenerator.generate(
+
+            "Top Selling Medicines",
+
+            headers,
+
+            rows,
+
+        )
+
+        response = HttpResponse(
+
+            pdf,
+
+            content_type="application/pdf",
+
+        )
+
+        response["Content-Disposition"] = (
+
+            'attachment; filename="sales_report.pdf"'
+
+        )
+
+        return response
+class SalesExcelView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        report = SalesReportService.top_selling_medicines()
+
+        headers = [
+
+            "Medicine",
+
+            "Generic Name",
+
+            "Quantity",
+
+            "Revenue",
+
+            "Profit",
+
+        ]
+
+        rows = []
+
+        for item in report:
+
+            rows.append([
+
+                item["medicine__medicine_name"],
+
+                item["medicine__generic_name"],
+
+                item["quantity"],
+
+                item["revenue"],
+
+                item["profit"],
+
+            ])
+
+        excel = ExcelReportGenerator.generate(
+
+            "Top Selling Medicines",
+
+            headers,
+
+            rows,
+
+        )
+
+        response = HttpResponse(
+
+            excel,
+
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+        )
+
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="sales_report.xlsx"'
+
+        return response
+
+class SalesPDFExportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        report = SalesReportService.top_selling_medicines()
+
+        headers = [
+            "Medicine",
+            "Generic Name",
+            "Quantity",
+            "Revenue",
+            "Profit",
+        ]
+
+        rows = []
+
+        for item in report:
+
+            rows.append([
+                item["medicine__medicine_name"],
+                item["medicine__generic_name"],
+                item["quantity"],
+                item["revenue"],
+                item["profit"],
+            ])
+
+        return ReportExportService.export_pdf(
+            title="Top Selling Medicines",
+            headers=headers,
+            rows=rows,
+            filename="top_selling_medicines",
+        )
+class SalesExcelExportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        report = SalesReportService.top_selling_medicines()
+
+        headers = [
+            "Medicine",
+            "Generic Name",
+            "Quantity",
+            "Revenue",
+            "Profit",
+        ]
+
+        rows = []
+
+        for item in report:
+
+            rows.append([
+                item["medicine__medicine_name"],
+                item["medicine__generic_name"],
+                item["quantity"],
+                item["revenue"],
+                item["profit"],
+            ])
+
+        return ReportExportService.export_excel(
+            title="Top Selling Medicines",
+            headers=headers,
+            rows=rows,
+            filename="top_selling_medicines",
+        )
+class SalesCSVExportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        report = SalesReportService.top_selling_medicines()
+
+        headers = [
+            "Medicine",
+            "Generic Name",
+            "Quantity",
+            "Revenue",
+            "Profit",
+        ]
+
+        rows = []
+
+        for item in report:
+
+            rows.append([
+                item["medicine__medicine_name"],
+                item["medicine__generic_name"],
+                item["quantity"],
+                item["revenue"],
+                item["profit"],
+            ])
+
+        return ReportExportService.export_csv(
+            headers=headers,
+            rows=rows,
+            filename="top_selling_medicines",
+        )
