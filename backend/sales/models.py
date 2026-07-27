@@ -1,5 +1,5 @@
 import uuid
-
+from common.constants import PAYMENT_METHODS
 from django.db import models
 
 
@@ -159,12 +159,16 @@ class SaleItem(models.Model):
         on_delete=models.PROTECT,
         related_name="sale_items",
     )
+    payment_method = models.CharField(
+    max_length=20,
+    choices=PAYMENT_METHODS,
+)
 
-    # batch = models.ForeignKey(
-    #     "batches.Batch",
-    #     on_delete=models.PROTECT,
-    #     related_name="sale_items",
-    # )
+    batch = models.ForeignKey(
+        "batches.Batch",
+        on_delete=models.PROTECT,
+        related_name="sale_items",
+    )
 
     quantity = models.PositiveIntegerField()
 

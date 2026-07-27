@@ -44,6 +44,7 @@ from django.db.models import Sum, Count, Avg, F, Q, DecimalField
 from sales.models import Sale
 from purchases.models import Purchase
 from payments.models import Payment
+from payments.models import PaymentCorrection
 
 
 class SalesReportService:
@@ -1198,3 +1199,61 @@ class FinancialReportService:
             "purchases": Purchase.objects.count(),
 
         }
+@staticmethod
+def payment_totals():
+
+    return (
+
+        Payment.objects
+
+        .filter(status="COMPLETED")
+
+        .values("payment_method")
+
+        .annotate(
+
+            total_amount=Sum("amount"),
+
+            transactions=Count("id"),
+
+        )
+
+        .order_by("-total_amount")
+
+    )
+@staticmethod
+def total_collections():
+
+    return Payment.objects.filter(
+
+        status="COMPLETED"
+
+    ).aggregate(
+
+        total=Sum("amount")
+
+    )
+@staticmethod
+def correction_summary():
+
+    return (
+
+        PaymentCorrection.objects
+
+        .values("correction_type")
+
+        .annotate(
+
+            total=Sum("amount"),
+
+            count=Count("id"),
+
+        ),
+        Payment.objects.values(
+    "payment_method"
+).annotate(
+    total=Sum("amount")
+)
+        
+
+    )

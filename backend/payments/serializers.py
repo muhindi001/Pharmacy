@@ -14,7 +14,9 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = "__all__"
+        fields = [
+             "payment_method",
+        ]
 
     def get_customer_name(self, obj):
 

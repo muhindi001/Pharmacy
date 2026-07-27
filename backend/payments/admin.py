@@ -24,3 +24,14 @@ class PaymentAdmin(admin.ModelAdmin):
         "payment_method",
         "status",
     )
+    list_display = (
+    "sale",
+    "payment_method",
+    "amount",
+    "status",
+)
+
+list_filter = (
+    "payment_method",
+    "status",
+)

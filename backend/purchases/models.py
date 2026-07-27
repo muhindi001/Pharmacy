@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-
+from common.constants import PAYMENT_METHODS
 
 class Purchase(models.Model):
 
@@ -106,6 +106,10 @@ class Purchase(models.Model):
 
     updated_at = models.DateTimeField(
         auto_now=True,
+    )
+    payment_method = models.CharField(
+    max_length=20,
+    choices=PAYMENT_METHODS,
     )
 
     class Meta:
