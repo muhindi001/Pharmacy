@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "dashboard",
     "reports",
     "analytics",
+    "manufacturers",
 ]
 
 

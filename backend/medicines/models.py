@@ -92,6 +92,12 @@ class Medicine(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
     )
+    
+    manufacturer = models.ForeignKey(
+    "manufacturers.Manufacturer",
+    on_delete=models.PROTECT,
+    related_name="medicines"
+)
 
     class Meta:
         db_table = "medicines"
