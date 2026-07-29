@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 from django.db.models import Count
-from django_filters.rest_framework import DjangoFilterBackend,ManufacturerFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Manufacturer
 from .serializers import ManufacturerSerializer
+from .filters import ManufacturerFilter
 
 
 class ManufacturerViewSet(viewsets.ModelViewSet):

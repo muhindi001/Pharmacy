@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-
+from warehouses.models import Warehouse
 
 class InventoryTransaction(models.Model):
 
@@ -31,6 +31,19 @@ class InventoryTransaction(models.Model):
         "medicines.Medicine",
         on_delete=models.PROTECT,
         related_name="inventory_transactions",
+    )
+    rfid_tag = models.ForeignKey(
+        "rfid.RFIDTag",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
+    scanned_by_reader = models.ForeignKey(
+        "rfid.RFIDReader",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
 
     transaction_type = models.CharField(
@@ -95,12 +108,26 @@ class Inventory(models.Model):
         on_delete=models.CASCADE,
         related_name="inventory",
     )
+    current_location = models.CharField(
+        max_length=150,
+        blank=True
+    )
+
+    last_rfid_scan = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     batch = models.OneToOneField(
         "batches.Batch",
         on_delete=models.CASCADE,
         related_name="inventory",
     )
+    warehouse = models.ForeignKey(
+        "warehouses.Warehouse",
+    on_delete=models.PROTECT,
+    related_name="inventory",
+)
 
     quantity = models.PositiveIntegerField(
         default=0,

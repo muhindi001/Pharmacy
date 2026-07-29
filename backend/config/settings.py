@@ -77,6 +77,8 @@ INSTALLED_APPS = [
     "reports",
     "analytics",
     "manufacturers",
+    "rfid",
+    "warehouses",
 ]
 
 

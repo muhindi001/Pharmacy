@@ -153,6 +153,12 @@ class SaleItem(models.Model):
         on_delete=models.CASCADE,
         related_name="items",
     )
+    rfid_tag = models.ForeignKey(
+        "rfid.RFIDTag",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
 
     medicine = models.ForeignKey(
         "medicines.Medicine",

@@ -132,6 +132,9 @@ class PurchaseItem(models.Model):
         on_delete=models.CASCADE,
         related_name="items",
     )
+    use_rfid = models.BooleanField(
+        default=True
+    )
 
     medicine = models.ForeignKey(
         "medicines.Medicine",

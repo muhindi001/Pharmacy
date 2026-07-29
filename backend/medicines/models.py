@@ -41,6 +41,17 @@ class Medicine(models.Model):
         blank=True,
         null=True,
     )
+    manufacturer = models.ForeignKey(
+        "manufacturers.Manufacturer",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="medicines",
+    )
+
+    has_rfid = models.BooleanField(
+        default=False
+    )
 
     medicine_name = models.CharField(
         max_length=255,
@@ -93,11 +104,6 @@ class Medicine(models.Model):
         auto_now=True,
     )
     
-    manufacturer = models.ForeignKey(
-    "manufacturers.Manufacturer",
-    on_delete=models.PROTECT,
-    related_name="medicines"
-)
 
     class Meta:
         db_table = "medicines"
@@ -112,3 +118,11 @@ class Medicine(models.Model):
 
     def __str__(self):
         return self.medicine_name
+    
+manufacturer = models.ForeignKey(
+    "manufacturers.Manufacturer",
+    on_delete=models.PROTECT,
+    related_name="medicines",
+    null=True,
+    blank=True,
+)
