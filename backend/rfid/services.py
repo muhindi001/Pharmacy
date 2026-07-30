@@ -29,40 +29,6 @@ class RFIDTagService:
             batch=batch,
             quantity=quantity,
         )
-        
-class RFIDReturnService:
-
-    @staticmethod
-    @transaction.atomic
-    def return_item(uid):
-
-        tag = RFIDTag.objects.select_for_update().get(
-            uid=uid
-        )
-
-        inventory = tag.inventory
-
-        inventory.quantity += 1
-        inventory.save()
-
-        tag.status = "RETURNED"
-        tag.save(update_fields=["status"])
-
-        InventoryTransaction.objects.create(
-            inventory=inventory,
-            transaction_type="RETURN",
-            quantity=1,
-            reference=uid,
-        )
-
-        RFIDMovement.objects.create(
-            tag=tag,
-            movement_type="RETURN",
-            quantity=1,
-            reference=uid,
-        )
-
-        return tag
 
 class RFIDReceivingService:
 
@@ -134,6 +100,63 @@ class RFIDSaleService:
         )
 
         return tag
+
+class RFIDScanService:
+
+    @staticmethod
+    @transaction.atomic
+    def scan_tag(uid, reader_id, scan_type, user):
+        tag = RFIDTag.objects.select_for_update().get(uid=uid)
+        reader = RFIDReader.objects.get(pk=reader_id)
+
+        scan = RFIDScan.objects.create(
+            tag=tag,
+            reader=reader,
+            scan_type=scan_type,
+            scanned_by=user,
+        )
+
+        return scan
+
+class RFIDBulkScanService:
+
+    @staticmethod
+    @transaction.atomic
+    def bulk_scan(uids, reader_id, scan_type, user):
+        reader = RFIDReader.objects.get(pk=reader_id)
+        scans = []
+
+        for uid in uids:
+            tag = RFIDTag.objects.select_for_update().get(uid=uid)
+
+            scan = RFIDScan.objects.create(
+                tag=tag,
+                reader=reader,
+                scan_type=scan_type,
+                scanned_by=user,
+            )
+            scans.append(scan)
+
+        return scans
+
+class RFIDTransferService:
+
+    @staticmethod
+    @transaction.atomic
+    def transfer(uid, from_location, to_location):
+        tag = RFIDTag.objects.select_for_update().get(uid=uid)
+
+        RFIDMovement.objects.create(
+            tag=tag,
+            movement_type="TRANSFER",
+            from_location=from_location,
+            to_location=to_location,
+            quantity=tag.quantity,
+            reference=uid,
+        )
+
+        return tag
+
 class RFIDReturnService:
 
     @staticmethod
