@@ -37,4 +37,8 @@ urlpatterns = [
     path("api/analytics/", include("analytics.urls")),
     path("api/manufacturers/",include("manufacturers.urls")),
     path("api/rfid/",include("rfid.urls"),),
+    path("api/warehouses/",include("warehouses.urls"),),
+    path("api/audit/",include("audit.urls"),),
+    path("api/audit/",include("audit.urls"),),
+    
 ]

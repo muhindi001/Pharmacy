@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "roles",
     "permissions",
-    "audit",
+    "audit.apps.AuditConfig",
     "categories",
     "medicines",
     "suppliers",
@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     "analytics",
     "manufacturers",
     "rfid",
-    "warehouses",
+    "warehouses.apps.WarehousesConfig",
 ]
 
 
