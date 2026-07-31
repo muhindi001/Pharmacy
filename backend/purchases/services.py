@@ -2,13 +2,15 @@
 
 from django.db import transaction
 from django.utils import timezone
+
+from audit.services import AuditService
 from batches.models import Batch
 from inventory.models import Inventory, InventoryTransaction
 from .models import Purchase
 
 
 @transaction.atomic
-def receive_purchase(purchase: Purchase):
+def receive_purchase(purchase: Purchase, request=None):
 
     if purchase.status == "Received":
         return purchase
@@ -91,14 +93,15 @@ def receive_purchase(purchase: Purchase):
     purchase.received_date = timezone.now().date()
 
     purchase.save()
-    
-    AuditService.log(
-    action="PURCHASE",
-    module="Purchase",
-    description=f"Purchase {purchase.purchase_number}",
-    user=request.user,
-    object_id=purchase.pk,
-    request=request,
-)
+
+    if request is not None:
+        AuditService.log(
+            action="PURCHASE",
+            module="Purchase",
+            description=f"Purchase {purchase.purchase_number}",
+            user=request.user,
+            object_id=purchase.pk,
+            request=request,
+        )
 
     return purchase

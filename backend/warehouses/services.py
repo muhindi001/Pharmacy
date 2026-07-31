@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
+from audit.services import AuditService
 from inventory.models import Inventory, InventoryTransaction
 
 from .models import (
@@ -90,7 +91,7 @@ class WarehouseTransferService:
     
     @staticmethod
     @transaction.atomic
-    def complete_transfer(transfer):
+    def complete_transfer(transfer, request=None):
 
         if transfer.status == "COMPLETED":
             return transfer
@@ -137,6 +138,16 @@ class WarehouseTransferService:
 
         transfer.status = "COMPLETED"
         transfer.save()
+
+        if request is not None:
+            AuditService.log(
+                action="TRANSFER",
+                module="Warehouse",
+                description=f"Transfer {transfer.transfer_number}",
+                user=request.user,
+                object_id=transfer.pk,
+                request=request,
+            )
 
         return transfer
     
@@ -212,6 +223,7 @@ class WarehouseInventoryService:
         medicine,
         quantity,
         reason,
+        request=None,
     ):
 
         inventory = Inventory.objects.select_for_update().get(
@@ -228,6 +240,16 @@ class WarehouseInventoryService:
             quantity=quantity,
             reference=reason,
         )
+
+        if request is not None:
+            AuditService.log(
+                action="ADJUSTMENT",
+                module="Inventory",
+                description=f"Adjusted {inventory.medicine.medicine_name}",
+                user=request.user,
+                object_id=inventory.pk,
+                request=request,
+            )
 
         return inventory
 class WarehouseReportService:

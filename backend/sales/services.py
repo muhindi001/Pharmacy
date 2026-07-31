@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
+from audit.services import AuditService
 from .models import Sale, SaleItem
 from batches.models import Batch
 from inventory.models import InventoryTransaction
@@ -52,7 +53,7 @@ def get_fefo_batch(medicine, quantity):
 
     return None
 @transaction.atomic
-def process_sale(validated_data, items):
+def process_sale(validated_data, items, request=None):
 
     sale = Sale.objects.create(
         sale_number=generate_sale_number(),
@@ -114,5 +115,15 @@ def process_sale(validated_data, items):
     sale.status = "Completed"
 
     sale.save()
+
+    if request is not None:
+        AuditService.log(
+            action="SALE",
+            module="Sales",
+            description=f"Sale {sale.invoice_number}",
+            user=request.user,
+            object_id=sale.pk,
+            request=request,
+        )
 
     return sale

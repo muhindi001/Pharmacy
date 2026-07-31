@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
+from audit.services import AuditService
 from inventory.models import Inventory
 from inventory.models import InventoryTransaction
 
@@ -105,7 +106,7 @@ class RFIDScanService:
 
     @staticmethod
     @transaction.atomic
-    def scan_tag(uid, reader_id, scan_type, user):
+    def scan_tag(uid, reader_id, scan_type, user, request=None):
         tag = RFIDTag.objects.select_for_update().get(uid=uid)
         reader = RFIDReader.objects.get(pk=reader_id)
 
@@ -116,13 +117,22 @@ class RFIDScanService:
             scanned_by=user,
         )
 
+        if request is not None:
+            AuditService.log(
+                action="RFID_SCAN",
+                module="RFID",
+                description=f"RFID scanned {tag.uid}",
+                user=request.user,
+                request=request,
+            )
+
         return scan
 
 class RFIDBulkScanService:
 
     @staticmethod
     @transaction.atomic
-    def bulk_scan(uids, reader_id, scan_type, user):
+    def bulk_scan(uids, reader_id, scan_type, user, request=None):
         reader = RFIDReader.objects.get(pk=reader_id)
         scans = []
 
@@ -135,6 +145,14 @@ class RFIDBulkScanService:
                 scan_type=scan_type,
                 scanned_by=user,
             )
+            if request is not None:
+                AuditService.log(
+                    action="RFID_SCAN",
+                    module="RFID",
+                    description=f"RFID scanned {tag.uid}",
+                    user=request.user,
+                    request=request,
+                )
             scans.append(scan)
 
         return scans

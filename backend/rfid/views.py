@@ -80,6 +80,7 @@ class RFIDScanViewSet(viewsets.ReadOnlyModelViewSet):
             reader_id=request.data["reader"],
             scan_type=request.data["scan_type"],
             user=request.user,
+            request=request,
         )
 
         serializer = self.get_serializer(scan)
@@ -94,6 +95,7 @@ class RFIDScanViewSet(viewsets.ReadOnlyModelViewSet):
             reader_id=request.data["reader"],
             scan_type=request.data["scan_type"],
             user=request.user,
+            request=request,
         )
 
         serializer = self.get_serializer(

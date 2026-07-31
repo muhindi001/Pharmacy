@@ -59,7 +59,7 @@ def receive(self, request, pk=None):
 
     purchase = self.get_object()
 
-    receive_purchase(purchase)
+    receive_purchase(purchase, request=request)
 
     serializer = self.get_serializer(purchase)
 

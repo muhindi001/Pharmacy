@@ -1,5 +1,6 @@
 from urllib import request
 
+from audit.services import AuditService
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status
 from rest_framework.response import Response
@@ -742,6 +743,14 @@ class SalesPDFView(APIView):
 
         )
 
+        AuditService.log(
+            action="EXPORT",
+            module="Reports",
+            description="Exported Sales Report",
+            user=request.user,
+            request=request,
+        )
+
         return response
 class SalesExcelView(APIView):
 
@@ -804,6 +813,14 @@ class SalesExcelView(APIView):
         response[
             "Content-Disposition"
         ] = 'attachment; filename="sales_report.xlsx"'
+
+        AuditService.log(
+            action="EXPORT",
+            module="Reports",
+            description="Exported Sales Report",
+            user=request.user,
+            request=request,
+        )
 
         return response
 

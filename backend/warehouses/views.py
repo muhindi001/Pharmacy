@@ -135,7 +135,8 @@ class WarehouseTransferViewSet(viewsets.ModelViewSet):
         transfer = self.get_object()
 
         WarehouseTransferService.complete_transfer(
-            transfer
+            transfer,
+            request=request,
         )
 
         return Response({
@@ -202,6 +203,7 @@ class WarehouseInventoryViewSet(viewsets.ViewSet):
             medicine_id=request.data["medicine"],
             quantity=request.data["quantity"],
             reason=request.data.get("reason", ""),
+            request=request,
         )
 
         return Response(

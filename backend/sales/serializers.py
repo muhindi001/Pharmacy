@@ -89,10 +89,12 @@ class SaleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         items = validated_data.pop("items")
+        request = self.context.get("request")
 
         return process_sale(
             validated_data,
             items,
+            request=request,
         )
 
     def update(self, instance, validated_data):
