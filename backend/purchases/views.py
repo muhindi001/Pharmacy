@@ -54,16 +54,16 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     ordering = [
         "-purchase_date",
     ]
-@action(detail=True, methods=["post"])
-def receive(self, request, pk=None):
 
-    purchase = self.get_object()
+    @action(detail=True, methods=["post"])
+    def receive(self, request, pk=None):
+        purchase = self.get_object()
 
-    receive_purchase(purchase, request=request)
+        receive_purchase(purchase, request=request)
 
-    serializer = self.get_serializer(purchase)
+        serializer = self.get_serializer(purchase)
 
-    return Response(serializer.data)
+        return Response(serializer.data)
 
 
 class PurchaseItemViewSet(viewsets.ModelViewSet):

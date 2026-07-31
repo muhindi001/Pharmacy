@@ -12,7 +12,7 @@ app_name = "warehouses"
 router = DefaultRouter()
 
 router.register(
-    r"warehouses",
+    r"",
     WarehouseViewSet,
     basename="warehouse",
 )

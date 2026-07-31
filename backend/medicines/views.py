@@ -2,7 +2,7 @@ from audit.services import AuditService
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from .import_export import (
@@ -18,7 +18,7 @@ from .serializers import MedicineSerializer
 class MedicineViewSet(viewsets.ModelViewSet):
 
     serializer_class = MedicineSerializer
-    parser_classes = [MultiPartParser]
+    parser_classes = [MultiPartParser, JSONParser]
 
     queryset = Medicine.objects.filter(
         is_deleted=False

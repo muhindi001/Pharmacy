@@ -39,3 +39,26 @@ class FlexibleJSONParserTests(TestCase):
         self.assertEqual(data["medicine_name"], "Paracetamol")
         self.assertEqual(data["unit"], "Tablet")
         self.assertTrue(data["is_active"])
+
+
+class MedicineSerializerPayloadTests(TestCase):
+    def test_serializer_handles_missing_required_fields_and_missing_category(self):
+        payload = {
+            "medicine_name": "Amoxicillin 500mg",
+            "category": 1,
+            "unit": "Capsule",
+            "purchase_price": 500,
+            "selling_price": 800,
+            "status": "ACTIVE",
+        }
+
+        serializer = MedicineSerializer(data=payload)
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        medicine = serializer.save()
+
+        self.assertEqual(medicine.generic_name, "Amoxicillin 500mg")
+        self.assertEqual(float(medicine.buying_price), 500.00)
+        self.assertIsNotNone(medicine.category)
+        self.assertTrue(medicine.is_active)
+        self.assertIsNotNone(medicine.expiry_date)

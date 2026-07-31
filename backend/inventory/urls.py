@@ -11,7 +11,7 @@ router.register(
 )
 
 router.register(
-    r"inventory",
+    r"",
     InventoryViewSet,
     basename="inventory",
 )

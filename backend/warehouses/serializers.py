@@ -9,9 +9,32 @@ from .models import (
 
 class WarehouseSerializer(serializers.ModelSerializer):
 
-    inventory_count = serializers.IntegerField(
-        read_only=True
+    warehouse_type = serializers.ChoiceField(
+        choices=Warehouse.WAREHOUSE_TYPES,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
     )
+    type = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+    )
+    inventory_count = serializers.IntegerField(
+        read_only=True,
+    )
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+
+            if "warehouse_type" not in data and "type" in data:
+                data["warehouse_type"] = data["type"]
+
+            if "warehouse_type" not in data:
+                data["warehouse_type"] = "MAIN"
+
+        return super().to_internal_value(data)
 
     class Meta:
         model = Warehouse

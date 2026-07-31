@@ -17,10 +17,11 @@ class ManufacturerViewSet(viewsets.ModelViewSet):
         )
         .order_by("manufacturer_name")
     )
-filter_backends = [DjangoFilterBackend]
-filterset_class = ManufacturerFilter
-search_fields = [
-    "manufacturer_name",
-    "code",
-    "phone_number",
-]
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ManufacturerFilter
+    search_fields = [
+        "manufacturer_name",
+        "code",
+        "phone_number",
+    ]
