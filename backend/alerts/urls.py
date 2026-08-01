@@ -9,4 +9,10 @@ router.register(
     basename="stock-alerts",
 )
 
+router.register(
+    r"inventory-alerts",
+    StockAlertViewSet,
+    basename="inventory-alerts",
+)
+
 urlpatterns = router.urls

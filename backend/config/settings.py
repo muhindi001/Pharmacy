@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     "suppliers",
     "batches",
     "inventory",
-    "alerts",
+    "alerts.apps.AlertsConfig",
     "customers",
     "prescriptions",
     "sales",
