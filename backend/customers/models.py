@@ -3,6 +3,16 @@ import uuid
 from django.db import models
 
 
+def generate_customer_code():
+    last_customer = Customer.objects.order_by("-created_at").first()
+
+    if not last_customer or not last_customer.customer_code:
+        return "CUST000001"
+
+    number = int(last_customer.customer_code.replace("CUST", ""))
+    return f"CUST{number + 1:06d}"
+
+
 class Customer(models.Model):
 
     GENDER_CHOICES = [
@@ -33,6 +43,7 @@ class Customer(models.Model):
     customer_code = models.CharField(
         max_length=30,
         unique=True,
+        default=generate_customer_code,
     )
 
     first_name = models.CharField(
@@ -144,6 +155,11 @@ class Customer(models.Model):
     class Meta:
         db_table = "customers"
         ordering = ["first_name", "last_name"]
+
+    def save(self, *args, **kwargs):
+        if not self.customer_code:
+            self.customer_code = generate_customer_code()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

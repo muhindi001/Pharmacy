@@ -79,6 +79,8 @@ INSTALLED_APPS = [
     "manufacturers",
     "rfid",
     "warehouses.apps.WarehousesConfig",
+    "goods_receiving",
+    "customer_history",
 ]
 
 

@@ -64,3 +64,18 @@ class LogoutSerializer(serializers.Serializer):
         except TokenError:
             raise serializers.ValidationError({"refresh": "Invalid or expired refresh token."})
         return attrs
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "status",
+            "is_verified",
+        ]

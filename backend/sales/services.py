@@ -43,7 +43,7 @@ def get_fefo_batch(medicine, quantity):
     batches = Batch.objects.filter(
         medicine=medicine,
         quantity__gt=0,
-        status="Active",
+        status__in=["Available", "Low Stock"],
     ).order_by("expiry_date")
 
     for batch in batches:
@@ -67,8 +67,8 @@ def process_sale(validated_data, items, request=None):
     for item in items:
 
         medicine = item["medicine"]
-
         quantity = item["quantity"]
+        payment_method = item.get("payment_method", "CASH")
 
         batch = get_fefo_batch(
             medicine,
@@ -81,7 +81,6 @@ def process_sale(validated_data, items, request=None):
             )
 
         batch.quantity -= quantity
-
         batch.save()
 
         total = quantity * batch.selling_price
@@ -91,6 +90,7 @@ def process_sale(validated_data, items, request=None):
             medicine=medicine,
             batch=batch,
             quantity=quantity,
+            payment_method=payment_method,
             unit_price=batch.selling_price,
             cost_price=batch.purchase_price,
             expiry_date=batch.expiry_date,

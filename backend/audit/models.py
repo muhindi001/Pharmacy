@@ -12,6 +12,8 @@ class AuditLog(models.Model):
         ("LOGOUT", "Logout"),
         ("SALE", "Sale"),
         ("PURCHASE", "Purchase"),
+        ("RECEIVED", "Received"),
+        ("COMPLETED", "Completed"),
         ("TRANSFER", "Transfer"),
         ("RETURN", "Return"),
         ("ADJUSTMENT", "Adjustment"),

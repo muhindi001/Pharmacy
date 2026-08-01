@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,7 +10,9 @@ from .serializers import (
     LoginSerializer,
     ChangePasswordSerializer,
     LogoutSerializer,
+    UserListSerializer,
 )
+from .models import User
 
 
 class LoginView(TokenObtainPairView):
@@ -44,4 +47,12 @@ class LogoutView(APIView):
         RefreshToken(refresh_token).blacklist()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserListSerializer
+
+    def get_queryset(self):
+        return User.objects.order_by("username")
     

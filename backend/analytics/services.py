@@ -28,17 +28,19 @@ class DashboardAnalyticsService:
         today = timezone.now().date()
 
         today_sales = Sale.objects.filter(
-            sale_date__date=today
+            created_at__date=today
         )
 
         today_revenue = (
             today_sales.aggregate(
-                total=Sum("grand_total")
+                total=Sum("total")
             )["total"] or 0
         )
 
         today_profit = (
-            today_sales.aggregate(
+            SaleItem.objects.filter(
+                sale__created_at__date=today
+            ).aggregate(
                 total=Sum("profit")
             )["total"] or 0
         )
@@ -96,20 +98,20 @@ class SalesAnalyticsService:
             Sale.objects
 
             .filter(
-                sale_date__date__gte=start
+                created_at__date__gte=start
             )
 
             .annotate(
-                day=TruncDate("sale_date")
+                day=TruncDate("created_at")
             )
 
             .values("day")
 
             .annotate(
 
-                revenue=Sum("grand_total"),
+                revenue=Sum("total"),
 
-                profit=Sum("profit"),
+                profit=Sum("items__profit"),
 
                 transactions=Count("id"),
 
@@ -151,7 +153,7 @@ class SalesAnalyticsService:
 
         return Sale.objects.aggregate(
 
-            average=Avg("grand_total")
+            average=Avg("total")
 
         )
 
@@ -228,7 +230,7 @@ class FinancialAnalyticsService:
 
             Sale.objects.aggregate(
 
-                total=Sum("grand_total")
+                total=Sum("total")
 
             )["total"] or 0
 
@@ -236,7 +238,7 @@ class FinancialAnalyticsService:
 
         profit = (
 
-            Sale.objects.aggregate(
+            SaleItem.objects.aggregate(
 
                 total=Sum("profit")
 
@@ -248,7 +250,7 @@ class FinancialAnalyticsService:
 
             Purchase.objects.aggregate(
 
-                total=Sum("grand_total")
+                total=Sum("total")
 
             )["total"] or 0
 
@@ -390,7 +392,7 @@ class ForecastService:
 
             Sale.objects.aggregate(
 
-                avg=Avg("grand_total")
+                avg=Avg("total")
 
             )["avg"] or 0
 
