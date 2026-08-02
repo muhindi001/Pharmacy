@@ -66,6 +66,37 @@ class LogoutSerializer(serializers.Serializer):
         return attrs
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "profile_image",
+            "role",
+            "status",
+            "is_verified",
+            "two_factor_enabled",
+            "last_login_ip",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "email",
+            "role",
+            "status",
+            "is_verified",
+            "last_login_ip",
+            "created_at",
+            "updated_at",
+        ]
+
+
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

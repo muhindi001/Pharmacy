@@ -5,12 +5,19 @@ from django.db import models
 
 def generate_medicine_sku():
     prefix = "SKU"
-    last_medicine = Medicine.objects.filter(id__startswith=prefix).order_by("id").last()
-    if last_medicine and last_medicine.id:
-        match = re.search(r"(\d+)$", last_medicine.id)
+    max_number = 0
+
+    for medicine_id in Medicine.objects.filter(id__startswith=prefix).values_list("id", flat=True):
+        match = re.search(r"(\d+)$", str(medicine_id))
         if match:
-            return f"{prefix}{int(match.group(1)) + 1:02d}"
-    return f"{prefix}01"
+            try:
+                max_number = max(max_number, int(match.group(1)))
+            except ValueError:
+                continue
+
+    next_number = max_number + 1
+    width = max(2, len(str(next_number)))
+    return f"{prefix}{next_number:0{width}d}"
 
 
 class Medicine(models.Model):
