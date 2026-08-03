@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Login from "./pages/auth/Login";
+import ChangePassword from "./pages/auth/ChangePassword";
 
 
 function App() {
@@ -25,6 +26,10 @@ function App() {
                     path="/login"
                     element={<Login />}
                 />
+                <Route
+                    path="/change-password"
+                    element={<ChangePassword />}
+                />  
 
             </Routes>
 

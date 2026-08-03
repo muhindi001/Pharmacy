@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, Pill } from "lucide-react";
+import { Eye, EyeOff, Cross } from "lucide-react";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +19,7 @@ export default function Login() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="bg-blue-600 p-4 rounded-full">
-            <Pill className="w-10 h-10 text-white" />
+            <Cross className="text-white w-10 h-10" />
           </div>
 
           <h1 className="mt-4 text-3xl font-bold text-slate-800">
