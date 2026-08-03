@@ -23,7 +23,7 @@ export default function Login() {
           </div>
 
           <h1 className="mt-4 text-3xl font-bold text-slate-800">
-            Pharmacy ERP
+            ABC Pharmacy
           </h1>
 
           <p className="text-gray-500 mt-1">
@@ -88,7 +88,7 @@ export default function Login() {
           {/* Login */}
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
+            className="mt-6 w-full rounded-lg bg-blue-800 py-3 text-white font-semibold hover:bg-blue-900 transition"
           >
             Login
           </button>

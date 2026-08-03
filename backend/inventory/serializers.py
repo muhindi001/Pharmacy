@@ -1,12 +1,9 @@
 from datetime import date
-
 from rest_framework import serializers
-
 from batches.models import Batch
 from categories.models import Category
 from medicines.models import Medicine
 from suppliers.models import Supplier
-
 from .models import Inventory, InventoryTransaction
 
 
