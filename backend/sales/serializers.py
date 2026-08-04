@@ -1,10 +1,15 @@
+from datetime import date
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from batches.models import Batch
+from categories.models import Category
 from common.constants import PAYMENT_METHODS
 from customers.models import Customer
 from medicines.models import Medicine
+from suppliers.models import Supplier
 from .models import Sale, SaleItem
 from .services import process_sale
 
@@ -73,6 +78,104 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
     medicine = MedicineLookupField(queryset=Medicine.objects.all())
     batch = BatchLookupField(queryset=Batch.objects.all())
+
+    def _resolve_or_create_medicine(self, value):
+        if value in (None, "", "null", "None"):
+            return None
+
+        if isinstance(value, Medicine):
+            return value
+
+        if isinstance(value, int):
+            value = str(value)
+
+        if isinstance(value, str):
+            medicine = Medicine.objects.filter(id=value).first()
+            if medicine is None:
+                medicine = Medicine.objects.filter(medicine_uuid=value).first()
+            if medicine is None:
+                medicine = Medicine.objects.filter(medicine_name__iexact=value).first()
+
+            if medicine is None:
+                default_category = Category.objects.order_by("id").first() or Category.objects.create(
+                    category_name="General",
+                    description="Auto-created default category",
+                )
+                medicine = Medicine.objects.create(
+                    medicine_name=str(value),
+                    generic_name=str(value),
+                    buying_price=Decimal("0.00"),
+                    selling_price=Decimal("0.00"),
+                    category=default_category,
+                    unit="Capsule",
+                    qty=0,
+                    expiry_date=date.today(),
+                )
+
+            return medicine
+
+        return None
+
+    def _resolve_or_create_batch(self, value, medicine, quantity):
+        if medicine is None:
+            return None
+
+        if value in (None, "", "null", "None"):
+            value = None
+
+        if isinstance(value, Batch):
+            return value
+
+        if isinstance(value, str):
+            batch = Batch.objects.filter(id=value).first()
+            if batch is None:
+                batch = Batch.objects.filter(batch_number__iexact=value).first()
+
+            if batch is None:
+                supplier = Supplier.objects.order_by("id").first() or Supplier.objects.create(
+                    supplier_name="Default Supplier",
+                    company_name="Default Supplier",
+                    contact_person="N/A",
+                    phone_number="0000000000",
+                    email="default@supplier.local",
+                    address="Default Address",
+                    tax_number="",
+                    payment_terms="Cash",
+                    is_active=True,
+                )
+                batch = Batch.objects.create(
+                    medicine=medicine,
+                    supplier=supplier,
+                    batch_number=str(value) if value is not None else f"AUTO-{date.today().strftime('%Y%m%d')}-{medicine.pk}",
+                    purchase_date=date.today(),
+                    expiry_date=date.today(),
+                    quantity=quantity or 0,
+                    remaining_quantity=quantity or 0,
+                    purchase_price=medicine.buying_price or Decimal("0.00"),
+                    selling_price=medicine.selling_price or Decimal("0.00"),
+                    status="Available",
+                )
+
+            return batch
+
+        return None
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+
+            medicine_value = data.get("medicine")
+            medicine = self._resolve_or_create_medicine(medicine_value)
+            if medicine is not None:
+                data["medicine"] = medicine.pk
+
+            batch_value = data.get("batch")
+            quantity = data.get("quantity", 0)
+            batch = self._resolve_or_create_batch(batch_value, medicine, quantity)
+            if batch is not None:
+                data["batch"] = str(batch.pk)
+
+        return super().to_internal_value(data)
 
     medicine_name = serializers.CharField(
         source="medicine.medicine_name",

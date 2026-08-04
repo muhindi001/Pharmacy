@@ -81,3 +81,40 @@ class SalesPayloadTests(TestCase):
         self.assertTrue(serializer.is_valid(), serializer.errors)
         sale = serializer.save()
         self.assertEqual(sale.items.count(), 1)
+
+    def test_sale_create_creates_missing_medicine_and_batch(self):
+        user = User.objects.create_user(
+            username="cashier2",
+            email="cashier2@example.com",
+            password="TestPass123!",
+            first_name="Cash",
+            last_name="ier",
+        )
+
+        customer = Customer.objects.create(
+            first_name="Jane",
+            last_name="Doe",
+            phone_number="+12345678902",
+        )
+
+        payload = {
+            "customer": str(customer.id),
+            "cashier": str(user.id),
+            "sale_type": "Cash",
+            "items": [
+                {
+                    "medicine": "Amoxicillin",
+                    "batch": "BATCH-NEW",
+                    "quantity": 1,
+                    "payment_method": "CASH",
+                }
+            ],
+        }
+
+        serializer = SaleSerializer(data=payload)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        sale = serializer.save()
+
+        self.assertEqual(sale.items.count(), 1)
+        self.assertTrue(Medicine.objects.filter(medicine_name="Amoxicillin").exists())
+        self.assertTrue(Batch.objects.filter(batch_number="BATCH-NEW").exists())

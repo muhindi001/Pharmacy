@@ -3,16 +3,11 @@ import uuid
 from rest_framework import serializers
 
 from .models import Payment
+from .services import finalize_payment
 
 
 class PaymentSerializer(serializers.ModelSerializer):
 
-    sale_number = serializers.CharField(
-        source="sale.sale_number",
-        read_only=True,
-    )
-
-    customer_name = serializers.SerializerMethodField()
     payment_number = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -30,9 +25,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             "id",
             "payment_number",
             "sale",
-            "sale_number",
-            "customer",
-            "customer_name",
             "payment_method",
             "amount",
             "amount_paid",
@@ -46,14 +38,25 @@ class PaymentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["sale_number", "customer_name"]
 
-    def get_customer_name(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        status = str(data.get("status") or "").strip().upper()
 
-        if obj.customer:
-            return f"{obj.customer.first_name} {obj.customer.last_name}"
+        if status in {"PAID", "SUCCESS", "SUCCEEDED", "COMPLETED"}:
+            normalized_status = "SUCCESS"
+        elif status in {"PENDING"}:
+            normalized_status = "PENDING"
+        elif status in {"FAILED", "FAILURE"}:
+            normalized_status = "FAILED"
+        else:
+            normalized_status = status or "SUCCESS"
 
-        return None
+        return {
+            "transaction_type": "SALE",
+            "amount": str(data.get("amount_paid") or data.get("amount") or "0.00"),
+            "status": normalized_status,
+        }
 
     def validate_payment_number(self, value):
         if value in (None, "", " "):
@@ -100,7 +103,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError({"cashier": "Authentication is required to create a payment."})
 
-        return super().create(validated_data)
+        payment = super().create(validated_data)
+        finalize_payment(payment)
+        return payment
 
     def _generate_payment_number(self):
         while True:

@@ -18,7 +18,7 @@ export default function Login() {
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-blue-600 p-4 rounded-full">
+          <div className="bg-blue-900 p-4 rounded-full">
             <Cross className="text-white w-10 h-10" />
           </div>
 
@@ -26,9 +26,9 @@ export default function Login() {
             ABC Pharmacy
           </h1>
 
-          <p className="text-gray-500 mt-1">
+          {/* <p className="text-gray-500 mt-1">
             Sign in to your account
-          </p>
+          </p> */}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -79,7 +79,7 @@ export default function Login() {
           <div className="flex justify-end mt-2">
             <Link
               to="/change-password"
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-bold text-blue-600 hover:text-blue-800 hover:underline"
             >
               Change Password
             </Link>
@@ -88,7 +88,7 @@ export default function Login() {
           {/* Login */}
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg bg-blue-800 py-3 text-white font-semibold hover:bg-blue-900 transition"
+            className="mt-6 w-full rounded-lg bg-blue-900 py-3 text-white font-semibold hover:bg-blue-900 transition"
           >
             Login
           </button>

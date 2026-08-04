@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "warehouses.apps.WarehousesConfig",
     "goods_receiving",
     "customer_history",
+    "transactions"
 ]
 
 

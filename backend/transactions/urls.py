@@ -1,11 +1,13 @@
 from rest_framework.routers import DefaultRouter
-from .views import InventoryViewSet
+
+from .views import TransactionViewSet
 
 router = DefaultRouter()
 
 router.register(
-    r"",
-    InventoryViewSet,
-    basename="inventory",
+    "",
+    TransactionViewSet,
+    basename="transactions",
 )
+
 urlpatterns = router.urls

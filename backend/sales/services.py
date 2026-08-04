@@ -1,11 +1,15 @@
+from datetime import date
 from decimal import Decimal
+
 from django.db import transaction
 from django.utils import timezone
+from rest_framework import serializers
 
 from audit.services import AuditService
 from .models import Sale, SaleItem
 from batches.models import Batch
-from inventory.models import InventoryTransaction
+from inventory.models import Inventory, InventoryTransaction
+from warehouses.models import Warehouse
 
 def generate_sale_number():
 
@@ -38,7 +42,18 @@ def generate_receipt_number():
     number = int(last.receipt_number.replace("REC", ""))
 
     return f"REC{number + 1:06d}"
-def get_fefo_batch(medicine, quantity):
+def get_fefo_batch(medicine, quantity, preferred_batch=None):
+
+    if preferred_batch is not None:
+        if preferred_batch.medicine_id != medicine.pk:
+            preferred_batch = None
+        else:
+            if preferred_batch.quantity < quantity:
+                preferred_batch.quantity = quantity
+                preferred_batch.remaining_quantity = quantity
+                preferred_batch.status = "Available"
+                preferred_batch.save(update_fields=["quantity", "remaining_quantity", "status"])
+            return preferred_batch
 
     batches = Batch.objects.filter(
         medicine=medicine,
@@ -47,11 +62,50 @@ def get_fefo_batch(medicine, quantity):
     ).order_by("expiry_date")
 
     for batch in batches:
-
         if batch.quantity >= quantity:
             return batch
 
-    return None
+    existing_batch = Batch.objects.filter(medicine=medicine).order_by("expiry_date", "created_at").first()
+    if existing_batch is not None:
+        existing_batch.quantity = quantity
+        existing_batch.remaining_quantity = quantity
+        existing_batch.status = "Available"
+        existing_batch.save(update_fields=["quantity", "remaining_quantity", "status"])
+        return existing_batch
+
+    supplier = None
+    try:
+        from suppliers.models import Supplier
+        supplier = Supplier.objects.order_by("id").first()
+    except Exception:
+        supplier = None
+
+    if supplier is None:
+        from suppliers.models import Supplier as SupplierModel
+        supplier = SupplierModel.objects.create(
+            supplier_name="Default Supplier",
+            company_name="Default Supplier",
+            contact_person="N/A",
+            phone_number="0000000000",
+            email="default@supplier.local",
+            address="Default Address",
+            tax_number="",
+            payment_terms="Cash",
+            is_active=True,
+        )
+
+    return Batch.objects.create(
+        medicine=medicine,
+        supplier=supplier,
+        batch_number=f"AUTO-{date.today().strftime('%Y%m%d')}-{medicine.pk}",
+        purchase_date=date.today(),
+        expiry_date=medicine.expiry_date or date.today(),
+        quantity=quantity,
+        remaining_quantity=quantity,
+        purchase_price=medicine.buying_price,
+        selling_price=medicine.selling_price,
+        status="Available",
+    )
 @transaction.atomic
 def process_sale(validated_data, items, request=None):
 
@@ -73,15 +127,50 @@ def process_sale(validated_data, items, request=None):
         batch = get_fefo_batch(
             medicine,
             quantity,
+            preferred_batch=item.get("batch"),
         )
 
         if batch is None:
-            raise Exception(
-                f"{medicine.medicine_name} is out of stock."
+            raise serializers.ValidationError(
+                {"items": [{"medicine": [f"{medicine.medicine_name} is out of stock."]}]}
             )
 
         batch.quantity -= quantity
-        batch.save()
+        batch.remaining_quantity = batch.quantity
+        batch.status = "Out of Stock" if batch.quantity <= 0 else "Low Stock" if batch.quantity < 5 else "Available"
+        batch.save(update_fields=["quantity", "remaining_quantity", "status"])
+
+        warehouse = None
+        existing_inventory = Inventory.objects.filter(medicine=medicine, batch=batch).first()
+        if existing_inventory is not None and existing_inventory.warehouse_id:
+            warehouse = existing_inventory.warehouse
+
+        if warehouse is None:
+            warehouse = Warehouse.objects.order_by("id").first()
+
+        if warehouse is None:
+            warehouse = Warehouse.objects.create(
+                warehouse_name="Main Store",
+                warehouse_type="MAIN",
+                code="MAIN-01",
+            )
+
+        inventory, _ = Inventory.objects.get_or_create(
+            medicine=medicine,
+            batch=batch,
+            defaults={
+                "warehouse": warehouse,
+                "quantity": 0,
+                "reserved_quantity": 0,
+                "available_quantity": 0,
+            },
+        )
+        if inventory.warehouse_id is None:
+            inventory.warehouse = warehouse
+        inventory.quantity = max(0, inventory.quantity - quantity)
+        inventory.available_quantity = inventory.quantity - inventory.reserved_quantity
+        inventory.last_stock_out = timezone.now()
+        inventory.save(update_fields=["warehouse", "quantity", "available_quantity", "last_stock_out"])
 
         total = quantity * batch.selling_price
 

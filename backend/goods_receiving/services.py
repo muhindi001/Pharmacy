@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from batches.models import Batch
-from inventory.models import Inventory
+from inventory.models import Inventory, InventoryTransaction
 
 from audit.services import AuditService
 
@@ -42,15 +42,22 @@ class GoodsReceivingService:
             )
 
             inventory.quantity += item.accepted_quantity
-
             inventory.available_quantity = (
-                inventory.quantity
-                - inventory.reserved_quantity
+                inventory.quantity - inventory.reserved_quantity
             )
-
             inventory.last_stock_in = receipt.received_date
-
+            inventory.last_stock_out = inventory.last_stock_out or None
             inventory.save()
+
+            InventoryTransaction.objects.create(
+                batch=batch,
+                medicine=item.medicine,
+                transaction_type="Stock In",
+                quantity=item.accepted_quantity,
+                reference_number=receipt.grn_number,
+                remarks=f"Goods received {receipt.grn_number}",
+                performed_by=user,
+            )
 
             item.inventory_updated = True
             item.save()
