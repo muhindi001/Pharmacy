@@ -95,7 +95,7 @@ class MedicineViewSet(viewsets.ModelViewSet):
         return export_pdf()
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
+        partial = kwargs.pop("partial", True)
         instance = self.get_object()
         serializer = self.get_serializer(
             instance,
@@ -121,7 +121,9 @@ class MedicineViewSet(viewsets.ModelViewSet):
         name = medicine.medicine_name
         pk = medicine.pk
 
-        medicine.delete()
+        medicine.is_deleted = True
+        medicine.is_active = False
+        medicine.save(update_fields=["is_deleted", "is_active", "updated_at"])
 
         AuditService.log(
             action="DELETE",

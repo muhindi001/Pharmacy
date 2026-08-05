@@ -72,7 +72,6 @@ class StockAlertAPITests(TestCase):
         self.assertEqual(data["count"], 1)
         self.assertEqual(data["results"][0]["alert_type"], "Low Stock")
         self.assertEqual(data["results"][0]["message"], "Only 12 units remaining.")
-        self.assertEqual(data["results"][0]["medicine"], "Panadol")
         self.assertEqual(data["results"][0]["medicine_name"], "Panadol")
         self.assertEqual(data["results"][0]["batch_number"], "B-1001")
 

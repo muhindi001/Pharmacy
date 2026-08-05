@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/reports/",include("reports.urls"),),
     path("api/analytics/", include("analytics.urls")),
     path("api/manufacturers/",include("manufacturers.urls")),
+    path("api/inventory/", include("inventory.urls")),
     path("api/transactions/", include("inventory.urls")),
     path("api/rfid/",include("rfid.urls"),),
     path("api/warehouses/",include("warehouses.urls"),),
@@ -43,7 +44,7 @@ urlpatterns = [
     path("api/audit/",include("audit.urls"),),
     path("api/goods-receiving/", include("goods_receiving.urls")),
     path("api/customers/",include("customer_history.urls"),),
-    path("api/", include("alerts.urls")),
+    path("api/alerts/", include("alerts.urls")),
     path("api/transactions/",include("transactions.urls"),),
     
 ]

@@ -9,6 +9,7 @@ from .models import (
 
 class WarehouseSerializer(serializers.ModelSerializer):
 
+    warehouse_name = serializers.CharField(read_only=True)
     warehouse_type = serializers.ChoiceField(
         choices=Warehouse.WAREHOUSE_TYPES,
         required=False,
@@ -23,6 +24,11 @@ class WarehouseSerializer(serializers.ModelSerializer):
     inventory_count = serializers.IntegerField(
         read_only=True,
     )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["warehouse"] = instance.warehouse_name
+        return data
 
     def to_internal_value(self, data):
         if isinstance(data, dict):
@@ -64,6 +70,15 @@ class WarehouseTransferSerializer(serializers.ModelSerializer):
         source="to_warehouse.warehouse_name",
         read_only=True
     )
+
+    from_warehouse = serializers.CharField(source="from_warehouse.warehouse_name", read_only=True)
+    to_warehouse = serializers.CharField(source="to_warehouse.warehouse_name", read_only=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["from_warehouse"] = instance.from_warehouse.warehouse_name if instance.from_warehouse else None
+        data["to_warehouse"] = instance.to_warehouse.warehouse_name if instance.to_warehouse else None
+        return data
 
     items = WarehouseTransferItemSerializer(
         many=True,

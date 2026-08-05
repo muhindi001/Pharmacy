@@ -55,8 +55,15 @@ class ManufacturerFKField(serializers.Field):
 
 
 class MedicineSerializer(serializers.ModelSerializer):
+    medicine_name = serializers.CharField(required=False, allow_blank=True)
     generic_name = serializers.CharField(required=False, allow_blank=True)
     buying_price = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        required=False,
+        min_value=0,
+    )
+    selling_price = serializers.DecimalField(
         max_digits=12,
         decimal_places=2,
         required=False,
@@ -121,16 +128,18 @@ class MedicineSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         attrs = attrs.copy()
 
-        attrs["category"] = self._resolve_category(attrs.get("category"))
-        attrs["manufacturer"] = self._resolve_manufacturer(attrs.get("manufacturer"))
+        if "category" in attrs:
+            attrs["category"] = self._resolve_category(attrs.get("category"))
+        if "manufacturer" in attrs:
+            attrs["manufacturer"] = self._resolve_manufacturer(attrs.get("manufacturer"))
 
-        if not attrs.get("generic_name"):
+        if "generic_name" not in attrs or not attrs.get("generic_name"):
             attrs["generic_name"] = attrs.get("medicine_name", "") or "N/A"
 
         if "buying_price" not in attrs and "purchase_price" in attrs:
             attrs["buying_price"] = attrs["purchase_price"]
 
-        if not attrs.get("buying_price"):
+        if "buying_price" not in attrs or not attrs.get("buying_price"):
             attrs["buying_price"] = 0
 
         status_value = attrs.pop("status", None)
@@ -150,10 +159,10 @@ class MedicineSerializer(serializers.ModelSerializer):
         attrs.pop("supplier", None)
         attrs.pop("tax_percentage", None)
 
-        if not attrs.get("qty"):
+        if "qty" not in attrs or not attrs.get("qty"):
             attrs["qty"] = 0
 
-        if not attrs.get("expiry_date"):
+        if "expiry_date" not in attrs or not attrs.get("expiry_date"):
             attrs["expiry_date"] = date.today() + timedelta(days=365)
 
         return attrs

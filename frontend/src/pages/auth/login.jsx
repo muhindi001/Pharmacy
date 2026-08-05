@@ -1,19 +1,37 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Cross } from "lucide-react";
+import { login } from "../../api/authApi";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    // TODO:
-    // Call login API here
+    try {
+      const response = await login({
+        username,
+        password,
+      });
+
+      localStorage.setItem("access_token", response.data.access);
+      localStorage.setItem("refresh_token", response.data.refresh);
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      setError("Invalid username or password");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-400 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 
         {/* Logo */}
@@ -31,7 +49,7 @@ export default function Login() {
           </p> */}
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleLogin}>
 
           {/* Username */}
           <div className="mb-5">
@@ -41,6 +59,8 @@ export default function Login() {
 
             <input
               type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
               placeholder="Enter username"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -56,6 +76,8 @@ export default function Login() {
 
               <input
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter password"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -74,6 +96,10 @@ export default function Login() {
 
             </div>
           </div>
+
+          {error ? (
+            <p className="mt-3 text-sm text-red-600">{error}</p>
+          ) : null}
 
           {/* Change Password */}
           <div className="flex justify-end mt-2">

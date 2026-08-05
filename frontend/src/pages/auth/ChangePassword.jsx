@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { changePassword } from "../../api/authApi";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-400 flex items-center justify-center px-4">
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 
