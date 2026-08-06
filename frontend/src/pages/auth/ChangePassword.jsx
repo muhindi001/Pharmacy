@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { changePassword } from "../../api/authApi";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    current_password: "",
+    old_password: "",
     new_password: "",
-    confirm_password: "",
+    new_password_confirm: "",
   });
 
   const [show, setShow] = useState({
@@ -32,22 +34,50 @@ export default function ChangePassword() {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (form.new_password !== form.confirm_password) {
-      alert("New password and confirmation do not match.");
-      return;
-    }
+  if (form.new_password !== form.new_password_confirm) {
+    alert("New password and confirmation do not match.");
+    return;
+  }
 
-    // TODO:
-    // Call Change Password API
+  try {
+    setLoading(true);
 
-    console.log(form);
-  };
+    await changePassword({
+      old_password: form.old_password,
+      new_password: form.new_password,
+      new_password_confirm: form.new_password_confirm,
+    });
+
+    toast.success("Password changed successfully.");
+
+    setForm({
+      current_password: "",
+      new_password: "",
+      confirm_password: "",
+    });
+
+    navigate("/login");
+
+  } catch (error) {
+
+    toast.error(
+      error?.response?.data?.message ||
+      error?.response?.data?.detail ||
+      "Unable to change password."
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
 
   return (
-    <div className="min-h-screen bg-slate-400 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-200 flex items-center justify-center px-4">
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 
@@ -83,8 +113,8 @@ export default function ChangePassword() {
 
               <input
                 type={show.current ? "text" : "password"}
-                name="current_password"
-                value={form.current_password}
+                name="old_password"
+                value={form.old_password}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Current password"
@@ -155,8 +185,8 @@ export default function ChangePassword() {
 
               <input
                 type={show.confirm ? "text" : "password"}
-                name="confirm_password"
-                value={form.confirm_password}
+                name="new_password_confirm"
+                value={form.new_password_confirm}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Confirm password"
@@ -185,7 +215,7 @@ export default function ChangePassword() {
 
             <button
               type="button"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/Login")}
               className="w-1/2 border border-gray-300 rounded-lg py-3 font-semibold hover:bg-gray-100"
             >
               Cancel

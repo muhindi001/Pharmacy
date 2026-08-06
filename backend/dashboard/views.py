@@ -11,6 +11,6 @@ class DashboardAPIView(APIView):
 
         data = DashboardService.get_dashboard()
 
-        serializer = DashboardSerializer(data)
+        serializer = DashboardSerializer(instance=data)
 
         return Response(serializer.data)

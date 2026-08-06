@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db.models import Count, F, Sum
 
@@ -6,7 +6,7 @@ from customers.models import Customer
 from inventory.models import Inventory
 from medicines.models import Medicine
 from purchases.models import Purchase
-from sales.models import Sale
+from sales.models import Sale, SaleItem
 from suppliers.models import Supplier
 
 
@@ -19,18 +19,18 @@ class DashboardService:
 
         today_sales = (
             Sale.objects.filter(
-                sale_date__date=today,
+                created_at__date=today,
             ).aggregate(
-                total=Sum("total_amount"),
+                total=Sum("total"),
             )["total"] or 0
         )
 
         monthly_sales = (
             Sale.objects.filter(
-                sale_date__year=today.year,
-                sale_date__month=today.month,
+                created_at__year=today.year,
+                created_at__month=today.month,
             ).aggregate(
-                total=Sum("total_amount"),
+                total=Sum("total"),
             )["total"] or 0
         )
 
@@ -49,7 +49,7 @@ class DashboardService:
         )
 
         total_profit = (
-            Sale.objects.aggregate(
+            SaleItem.objects.aggregate(
                 total=Sum("profit"),
             )["total"] or 0
         )
@@ -79,9 +79,7 @@ class DashboardService:
             ).count(),
 
             "expiring_soon": Inventory.objects.filter(
-                batch__expiry_date__lte=today.replace(
-                    month=min(today.month + 1, 12)
-                )
+                batch__expiry_date__lte=(today + timedelta(days=30))
             ).count(),
 
             "out_of_stock": Inventory.objects.filter(
