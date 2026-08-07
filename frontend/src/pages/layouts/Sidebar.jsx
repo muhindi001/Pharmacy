@@ -1,10 +1,18 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { menuItems } from "../../data/menuItems";
 import { LogOut, ChevronDown, ChevronUp } from "lucide-react";
 
 const Sidebar = () => {
+    const location = useLocation();
     const [openMenu, setOpenMenu] = useState(null);
+
+    useEffect(() => {
+        const activeMenu = menuItems.find((item) =>
+            item.children?.some((child) => location.pathname === child.path)
+        );
+        setOpenMenu(activeMenu?.name || null);
+    }, [location.pathname]);
 
     const toggleMenu = (name) => {
         setOpenMenu((current) => (current === name ? null : name));

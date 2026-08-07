@@ -1,8 +1,8 @@
 import api from "./axios";
 
 // Medicines
-export const getMedicines = () =>
-    api.get("medicines/");
+export const getMedicines = (params) =>
+    api.get("medicines/", { params });
 
 export const getMedicine = (id) =>
     api.get(`medicines/${id}/`);
@@ -30,7 +30,11 @@ export const searchRFID = (rfid) =>
 
 // Import Excel
 export const importMedicines = (data) =>
-    api.post("medicines/import/", data);
+    api.post("medicines/import/", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 
 // Export Excel
 export const exportMedicines = () =>

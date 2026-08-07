@@ -32,7 +32,6 @@ class MedicineViewSet(viewsets.ModelViewSet):
 
     search_fields = [
         "medicine_name",
-        "generic_name_sku",
     ]
 
     filterset_fields = [
